@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIYA share demo requestIdleCallback</title>
+    <style>
+        p{
+            line-height: 1.8;
+            font-size: 16px;
+            font-family: Microsoft Yahei,simsun,Tahoma,Helvetica,Arial,SimHei,sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <p>
+        可能会看到大于16ms的空余时间出现，这正常吗？你在骗我！
+        <br>
+        其实呢？requestIdleCallback的执行，分2种情况。如果浏览器很长时间都没有工作执行，那他会<b>降频</b>，requestIdleCallback的时间会延长到50ms
+        也就是每秒20帧。
+        <br>
+        为什么呢？我搜到的结果哈！就先相信我
+        <br>
+        对于人来说，100MS内响应的话，用户会感觉比较流畅，那么100 = 2 * 50，给你了50ms剩下50ms让浏览器自己做点事情，那么即时在这个时间内，浏览器发生交互。你依然感觉不到卡顿！
+    </p>
+    <script>
+        /**
+         * dur 单位毫秒
+        */
+        function sleep(dur) {
+            let start = Date.now();
+            // 就是我浪费掉这段时间，让他进入死循环
+            while(start + dur > Date.now()){
+
+            }
+        }
+        const works = [
+            () => {
+                console.group('task group 1')
+                console.log("执行第1个任务");
+                sleep(20);
+                console.log("任务1结束");
+                console.groupEnd()
+            },
+            () => {
+                console.group('task group 2')
+                console.log("执行第2个任务");
+                sleep(20);
+                console.log("任务2结束");
+                console.groupEnd()
+            },
+            () => {
+                console.group('task group 3')
+                console.log("执行第3个任务");
+                // sleep(20);
+                console.log("任务3结束");
+                console.groupEnd()
+            },
+        ];
+
+        requestIdleCallback(workLoop, { timeout: 1000 }); // 设置个1S的超时。
+        
+        // 工作循环
+        function workLoop(deadline) {
+            console.log(`%c 当前帧剩余时间-%c ${parseInt(deadline.timeRemaining())}`,"color:green", "color:orange;font-weight:bold");
+            // ---------------------
+            // 看这里看这里，还记不记得那句话，react会适时让出主进程，保证不卡顿，他是怎么做到的？
+            // 就是这段代码！其实就是看看还有没有剩余的时间，有，就执行，没有就不执行了呗~~~但是其实就是个while循环。
+            while ((deadline.timeRemaining() > 1 || deadline.didTimeout) && works.length > 0) {
+                performUnitOfWork();
+            }
+            // ---------------------
+
+            if (works.length > 0) {
+                console.log(`%c 只剩下 %c ${parseInt(deadline.timeRemaining())}ms, %c 时间片到了等待下次空闲时间的调度`, "color:red", "color:green","color:red" );
+                requestIdleCallback(workLoop);
+            }
+        }
+        /**
+         * 模拟执行每一帧的任务。
+        */
+        function performUnitOfWork() {
+            works.shift()();
+        }
+    </script>
+</body>
+</html>

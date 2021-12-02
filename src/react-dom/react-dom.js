@@ -54,19 +54,30 @@ let ifError = (function () {
 })()
 
 function createFiber(tag, props, key) {
+  // 看啊  这里new fiber了  看清楚！这里不就是一个对象么？
   return new FiberNode(tag, props, key)
 }
 
 class FiberNode {
   constructor(tag, pendingProps, key) {
-    this.tag = tag // 表示fiber的类型
-    this.key = key
+    debugger
+    // 这里在干啥？？？？给fiber这个对象赋值。。。。是不是。。。一点儿都不神秘！对吧
+    // 为什么有类型呢? 因为你有很多种组件是不是。  当然原生组件中有一种特例，就是 如果一个父节点，只有文本节点一个子节点，那他的文本节点会作为属性，赋值到父fiber的属性上，（react17+才有的优化特性）
+    // 而不会创建，但如果还有更多呢？ 那。。。。就创建呗。。。所以文本节点也可以是fiber节点也可以不是！不要上当哈。问你所有节点都是fiber节点吗？怎么回？这次就会了吧？
+    this.tag = tag // 表示fiber的类型  
+  
+    this.key = key // 这个是啥 不就是你给的key么？区分fiber的么？不让我讲dom diff 所以这里不展开了吧？就理解成key 至于怎么比对，下次讲dom diff咱们再说呗！
+
     this.type = null // 表示当前fiber对应的节点的类型
-    this.stateNode = null // 表示当前fiber对应的实例
+    this.stateNode = null // 表示当前fiber对应的实例 简单理解就是fiber对应的dom 可以吧
+
     this.child = null // 指向当前fiber的firstChild
     this.sibling = null // 当前fiber的兄弟节点
     this.return = null // 指向当前fiber的父节点
-    this.index = 0
+
+    // 下面不讲了！为什么。因为本期不讲！ 
+    this.index = 0 // 存构建顺序的，这个忘记啥用了，好像没key就用 他来区分是不是能重用。
+
     this.memoizedState = null // 表示当前fiber上的state
     this.memoizedProps = null // 表示旧的props的状态
     this.pendingProps = pendingProps // 表示即将挂载的props 或者说是本次更新的新的props
@@ -450,7 +461,7 @@ function completeWork(workInProgress) {
       }
     }
   }
-  console.log('完成创建', workInProgress.pendingProps ? workInProgress.pendingProps.className : 'RootFiber的类型-'  + workInProgress.tag)
+  console.log('--完成创建', workInProgress.pendingProps ? workInProgress.pendingProps.className : 'RootFiber的类型-'  + workInProgress.tag)
 }
 
 function completeUnitOfWork(workInProgress) {
@@ -723,7 +734,7 @@ class ReactRoot {
     let uninitalFiber = this._createUninitalFiber(HostRoot, null, null)
     let root = {
       container: container,
-      current: uninitalFiber,
+      current: uninitalFiber, // 看这，我第一次创建的时候，肯定是空的，那怎么办呢？我给他current！就好了。
       finishedWork: null
     }
     uninitalFiber.stateNode = root
@@ -744,20 +755,28 @@ class ReactRoot {
     // 根据uninitalFiber生成workInProgress树
     // 至于什么时候用createWorkInProgress树呢
     // 就是当这个节点 有current的时候才会去用这个函数
-    // 因为有current 所以可以尝试着去复用
-    let workInProgress = createWorkInProgress(root.current, null)
+    // 因为有current 所以可以尝试着去复用    在react的世界里，复用大于创建。
+
+    // 那他这么做有什么好处呢？简单的讲，流程统一，我不管是第一次，还是第二次，还是第三次，我是不是都总同样的流程！就是更新。
+    let workInProgress = createWorkInProgress(root.current, null) // 第一次有属性吗？没有，所以给空。
     workInProgress.memoizedState = { element: element }
     // 其实react源码中是先把element临时挂到了current上 反正current也用不到
     // 这里直接一点简单一点 直接挂在memoizedState上
     nextUnitOfWork = workInProgress
+
+    // 下一个工作单元，工作单元不就是我们刚才讲的帧的概念了么？每个帧就相当于一个工作单元了
     workLoop(nextUnitOfWork)
     root.finishedWork = root.current.alternate
+
     if (!!root.finishedWork) {
+      // 如果呢，finish了，就干啥？提交呗，把这次render收集到的effectlist 都提交，就是干嘛？ 更新dom嘛！调用生命周期事件嘛~
       completeRoot(root, root.finishedWork)
     }
   }
 }
 
+// 放在这，就是为了告诉你，其实react的ele类型啊，是很多种的，每一种内部在创建和执行上，有区分和不同，但流程是基本上一致的。
+// render是个生产线，其他的组件 dom等等 都是物料！也就是原料的意思
 let classComponentUpdater = {
   enqueueSetState: function () {
     // 执行setState其实就是执行了这个方法
@@ -768,7 +787,9 @@ let ReactDOM = {
   render: (reactEle, container, callback) => {
     isFirstRender = true
     let root = new ReactRoot(container)
-    container._reactRootContainer = root
+    // 这个变量熟悉吗？不就是我们root节点上的实例对象么？因为root节点是什么？？？？？ 是他hostComponent嘛！(原生节点！)
+    container._reactRootContainer = root 
+    // 这里要注意，我这里给的是一个原生dom节点，如果是函数组件、类组件。其实有点细微区别。需要自己去源码中了解。
     root.render(reactEle, callback)
     isFirstRender = false
   },

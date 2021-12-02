@@ -1,5 +1,5 @@
-# 大白话版本
-
+# 黄老师的大白话版本fiber是啥
+> 这其实是我的学习笔记，所以比较口语化，原谅。
 ## fiber: 就是一个数据结构有很多属性
 
 ## fiber是啥呢
@@ -38,13 +38,13 @@
 
 ## react中 主要有两个阶段
 ### render阶段
-- 1. 为每个节点创建新的workInProgress(或复用) 生产一颗有新状态的fiber树
-- 2. 初次渲染的时候(或新创建了某个节点的时候) 会为这个fiber创建真实的dom节点 并且对创建的dom节点的- 节点进行插入append
-- 3. 如果不是初次渲染的话 就对比新旧的fiber的状态 将产生了更新的fiber 最终通过链表的形式 挂载到RootFiber上
+> 1. 为每个节点创建新的workInProgress(或复用) 生产一颗有新状态的fiber树
+> 2. 初次渲染的时候(或新创建了某个节点的时候) 会为这个fiber创建真实的dom节点 并且对创建的dom节点的 节点进行插入append
+> 3. 如果不是初次渲染的话 就对比新旧的fiber的状态 将产生了更新的fiber 最终通过链表的形式 挂载到RootFiber上
 
 ### commit阶段
-- 1. 执行生命周期
-- 2. 从RootFiber上 获取到有更新的fiber的那条链表 然后根据每个fiber的更新的状态(Update, Placment, Deletion, ...) 进行真正的修改页面
+> 1. 执行生命周期
+> 2. 从RootFiber上 获取到有更新的fiber的那条链表 然后根据每个fiber的更新的状态(Update, Placment, Deletion, ...) 进行真正的修改页面
 
 ## setState是同步还是异步?
 - 如果是正常情况下 也就是没有使用Concurrent组件到的情况下 react的更新是同步的
@@ -56,7 +56,7 @@
 - 同样的 无法在事件中 立即获取到最新的状态 并且在执行react的更新和渲染的流程中
 - 使用了真正的异步方式(postMessage) 这个才是真正的异步
 
-```javascript 
+``` javascript 
 flushSync(() => {
   this.setState({
      ding: xxx
@@ -67,7 +67,7 @@ flushSync(() => {
 - 就是说 一旦执行了flushSync 就会立即触发react的更新以及渲染的过程
 - 这样的话 就可以在同一个事件函数中 立即获取到最新的状态了
 
-```javascirpt
+``` javascirpt
  unstable_batchedUpdates // 17+
  setTimeout(() => {
    batchedUpdates(() => {
@@ -88,10 +88,9 @@ flushSync(() => {
 - 那么可以理解成 uninitalFiber的state(是null)变成了咱们传进来的react元素
 
 
+> 1. 判断当前节点上是否已经存在了effect链表 如果存在effect链表 说明 当前节点的子节点是有更新的 然后 要把当前节点上的effect链表 挂载到当前节点的父节点上
 
-- 1. 判断当前节点上是否已经存在了effect链表 如果存在effect链表 说明 当前节点
-- 的子节点是有更新的 然后 要把当前节点上的effect链表 挂载到当前节点的父节点上
-- 2. 判断当前节点 自己本身是否有更新(如果当前节点自身的effectTag !== NoWork)
-- 就把这个节点自己本身 也挂到父节点上
+
+> 2. 判断当前节点 自己本身是否有更新(如果当前节点自身的effectTag !== NoWork)就把这个节点自己本身 也挂到父节点上
 
 

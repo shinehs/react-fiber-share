@@ -8,10 +8,12 @@ let ele = (
       <div className="child1-B">B</div>
     </div>
     <div className="child2" style={{border: '4px solid blue',marginTop:'10px'}}>
-      <div className="C">C</div>
+      <div className="child2-C">C</div>
     </div>
   </div>
 )
+
+debugger
 // console.log('~~~', ele);
 ReactDOM.render(
   ele,
