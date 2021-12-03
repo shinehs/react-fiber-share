@@ -12,10 +12,14 @@ let ele = (
     </div>
   </div>
 )
-
-debugger
 // console.log('~~~', ele);
+debugger
+// 其实react在render阶段就做了2件事情，
+// 1.构建虚拟dom(不讲吧，投票的么~)
+// 2.收集effectList(咱们调试下！)
 ReactDOM.render(
   ele,
   document.querySelector('#root')
 )
+// 如果你拿17去玩 记得
+// ReactDOM.unstable_createRoot(ocument.querySelector('#root')).render(ele)

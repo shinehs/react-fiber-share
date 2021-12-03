@@ -68,14 +68,16 @@ class FiberNode {
   
     this.key = key // 这个是啥 不就是你给的key么？区分fiber的么？不让我讲dom diff 所以这里不展开了吧？就理解成key 至于怎么比对，下次讲dom diff咱们再说呗！
 
-    this.type = null // 表示当前fiber对应的节点的类型
-    this.stateNode = null // 表示当前fiber对应的实例 简单理解就是fiber对应的dom 可以吧
+    this.type = null // 表示当前fiber的真实类型
+    this.stateNode = null // 表示当前fiber对应的内容：实例、dom 。为什么呢?因为如果是函数组件，他就对应函数实例啊，如果是原生dom组件，那他就对应dom了。
 
+    // 这是咱们今天要讲的重点吧。也就是你只要对fiber有个基础的概念了，然后拿着我这份代码玩玩，基本就通了呗。不一定听一次就懂的。
     this.child = null // 指向当前fiber的firstChild
     this.sibling = null // 当前fiber的兄弟节点
     this.return = null // 指向当前fiber的父节点
 
-    // 下面不讲了！为什么。因为本期不讲！ 
+    // 有同学说咋不讲链表呢？fiber不就是个链表吗？—— 你在百度上能随便找到的东西，我不需要讲对不？
+    // 下面不讲了！为什么。时间不够啊亲
     this.index = 0 // 存构建顺序的，这个忘记啥用了，好像没key就用 他来区分是不是能重用。
 
     this.memoizedState = null // 表示当前fiber上的state
@@ -728,6 +730,7 @@ function completeRoot(root, finishedWork) {
 
 class ReactRoot {
   constructor(container) {
+    // _reactRootContainer._internalRoot.... 知道了么？我们把它简化了一层，好理解一些。
     this._internalRoot = this._createRoot(container)
   }
   _createRoot(container) {
@@ -785,6 +788,7 @@ let classComponentUpdater = {
 
 let ReactDOM = {
   render: (reactEle, container, callback) => {
+    debugger
     isFirstRender = true
     let root = new ReactRoot(container)
     // 这个变量熟悉吗？不就是我们root节点上的实例对象么？因为root节点是什么？？？？？ 是他hostComponent嘛！(原生节点！)
@@ -793,6 +797,7 @@ let ReactDOM = {
     root.render(reactEle, callback)
     isFirstRender = false
   },
+  // 其实这里 在源码上  是scheduler，也就是调度，但如果这样写，就不太好理解，我简化他一下。
 }
 
 export default ReactDOM
